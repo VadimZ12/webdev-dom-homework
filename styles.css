@@ -154,3 +154,15 @@ body {
 .error {
 background-color: gray;
 }
+
+.quote {
+margin-top: 24px;
+font-size: 18px;
+box-sizing: border-box;
+background: radial-gradient(
+  75.42% 75.42% at 50% 42.37%,
+  rgba(53, 53, 53, 0) 22.92%,
+  #b19fd2 100%
+);
+border-radius: 24px;
+}
