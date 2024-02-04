@@ -47,7 +47,7 @@ const answerOnComment = () => {
       author = comments[commentIndex].userName;
       authorComment = comments[commentIndex].commentText;
 
-      commentAreaElement.innerHTML = `QUOTE_BEGIN ${author} + ${authorComment} QUOTE_END`;
+      commentAreaElement.value = `QUOTE_BEGIN ${author} + ${authorComment} QUOTE_END`;
   
   
       renderComments();
@@ -88,7 +88,7 @@ const deleteComments = () => {
 
 
 commentAreaElement.addEventListener("keyup", function(event) {
-  if (event.key === 'Enter') {
+  if (event.key === 'Enter' && event.shiftKey) {
     addComment();
   }
 });
