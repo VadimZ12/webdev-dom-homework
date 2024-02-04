@@ -34,15 +34,33 @@ function handleInputChange() {
   } else {
     addButtonElement.disabled = true;
     addButtonElement.classList.add('error');
-
   }
 }
+
+const answerOnComment = () => {
+  const commentsElement = document.querySelectorAll(".comment");
+
+  for (const commentElement of commentsElement) {
+    commentElement.addEventListener("click", () => {
+      const commentIndex = commentElement.dataset.index
+      
+      author = comments[commentIndex].userName;
+      authorComment = comments[commentIndex].commentText;
+
+      commentAreaElement.value = `QUOTE_BEGIN ${author} + ${authorComment} QUOTE_END`;
+  
+  
+      renderComments();
+    });
+  }
+};
 
 const likeComments = () => {
   const likeButtonsElement = document.querySelectorAll(".like-button")
   
   for (const likeButtonElement of likeButtonsElement) {
-    likeButtonElement.addEventListener("click", () => {
+    likeButtonElement.addEventListener("click", (event) => {
+      event.stopPropagation(); 
       const likeIndex = likeButtonElement.dataset.index;
 
       if (comments[likeIndex].isLiked) {
@@ -70,7 +88,7 @@ const deleteComments = () => {
 
 
 commentAreaElement.addEventListener("keyup", function(event) {
-  if (event.key === 'Enter') {
+  if (event.key === 'Enter' && event.shiftKey) {
     addComment();
   }
 });
@@ -80,7 +98,7 @@ addButtonElement.addEventListener("click", addComment);
 const renderComments = () => {
   const commentsHtml = comments
     .map((comment, index) => {
-      return `<li class="comment">
+      return `<li data-index="${index}" class="comment">
       <div class="comment-header">
         <div>${comment.userName}</div>
         <div>${comment.time}</div>
@@ -103,11 +121,13 @@ const renderComments = () => {
   commentsList.innerHTML = commentsHtml;
 
   likeComments();
+  answerOnComment();
 
 };
 
 renderComments();
 likeComments();
+answerOnComment();
 deleteComments();
 
 function addComment() {
@@ -126,8 +146,18 @@ function addComment() {
     });
 
     comments.push({
-      userName: nameInputElement.value,
-      commentText: commentAreaElement.value,
+      userName: nameInputElement.value
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;"),
+      commentText: commentAreaElement.value
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("QUOTE_BEGIN", "<div class='quote'>")
+        .replaceAll("QUOTE_END", "</div>"),
       time: `${formattedDateTime}`,
       likes: 0,
       isLiked: "",
