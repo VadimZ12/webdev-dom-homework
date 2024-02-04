@@ -4,26 +4,59 @@ const nameInputElement = document.getElementById("name-input");
 const commentAreaElement = document.getElementById("comment-area");
 const commentsList = document.getElementById("comments-list");
 
-const comments = [
-  {
-    userName: "Глеб Фокин",
-    time: "12.02.22 12:18",
-    commentText: "Это будет первый комментарий на этой странице",
-    likes: "3",
-    isLiked: "",
-  },
-  {
-    userName: "Варвара Н.",
-    time: "13.02.22 19:22",
-    commentText: "Мне нравится как оформлена эта страница! ❤",
-    likes: "75",
-    isLiked: "-active-like",
-  },
-];
+const formattedDateTime = (time) => {
+  let dateTime = new Date(time);
+  return dateTime.toLocaleString('ru-Ru', {
+    year: '2-digit',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
+let urlApi = "https://wedev-api.sky.pro/api/v1/vadim-zolotov/comments";
+
+// Получение списка комментариев через API с помощью метода GET
+const getComments = () => {
+  let fetchPromise = fetch(urlApi, {
+    method: "GET"
+  }).then((response) => {
+    return response.json();
+  }).then((responseData) => {
+    comments = responseData.comments.map((comment) => {
+      return {
+        userName: comment.author.name,
+        time: formattedDateTime(comment.date),
+        commentText: comment.text,
+        id: comment.id,
+        likes: comment.likes,
+        isLiked: false,
+      };
+    });
+
+    renderComments();
+  });
+};
+
+
+getComments();
+
+let comments = [];
+
+// Удаление комментария 
+const deleteComments = () => {
+  const deleteButtonElement = document.getElementById("delete-button");
+
+  deleteButtonElement.addEventListener("click", () => {
+    comments.pop();
+    renderComments();
+  });
+};
 
 nameInputElement.addEventListener('input', handleInputChange);
 commentAreaElement.addEventListener('input', handleInputChange);
-
+// Проверка ввода заданного текста в поля "Имя" и "комментарий"
 function handleInputChange() {
   const name = nameInputElement.value.trim();
   const comment = commentAreaElement.value.trim();
@@ -37,6 +70,7 @@ function handleInputChange() {
   }
 }
 
+// Ответ на комментарий 
 const answerOnComment = () => {
   const commentsElement = document.querySelectorAll(".comment");
 
@@ -47,7 +81,7 @@ const answerOnComment = () => {
       author = comments[commentIndex].userName;
       authorComment = comments[commentIndex].commentText;
 
-      commentAreaElement.value = `QUOTE_BEGIN ${author} + ${authorComment} QUOTE_END`;
+      commentAreaElement.value = `QUOTE_BEGIN ${author}: - \n"${authorComment}" QUOTE_END`;
   
   
       renderComments();
@@ -77,14 +111,6 @@ const likeComments = () => {
 
 };
 
-const deleteComments = () => {
-  const deleteButtonElement = document.getElementById("delete-button");
-
-  deleteButtonElement.addEventListener("click", () => {
-    comments.pop();
-    renderComments();
-  });
-};
 
 
 commentAreaElement.addEventListener("keyup", function(event) {
@@ -95,6 +121,8 @@ commentAreaElement.addEventListener("keyup", function(event) {
 
 addButtonElement.addEventListener("click", addComment);
 
+
+// Отрисовка комментариев 
 const renderComments = () => {
   const commentsHtml = comments
     .map((comment, index) => {
@@ -125,6 +153,7 @@ const renderComments = () => {
 
 };
 
+getComments();
 renderComments();
 likeComments();
 answerOnComment();
@@ -135,40 +164,47 @@ function addComment() {
   const name = nameInputElement.value.trim();
   const comment = commentAreaElement.value.trim();
 
+  const sanitizeHtml = (htmlString) => {
+    return htmlString
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("QUOTE_BEGIN", "<div class='quote'>")
+    .replaceAll("QUOTE_END", "</div>")
+  };
+
   if (name !== '' && comment !== '') {
 
-    const formattedDateTime = new Date().toLocaleString('ru-Ru', {
-      year: '2-digit',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    let fetchPromise = fetch(urlApi, 
+      {
+        method: "POST",
+        body: JSON.stringify({
+          userName: sanitizeHtml(nameInputElement.value),
+          text: sanitizeHtml(commentAreaElement.value),
+        })
+      }).then((response) => {
+        if (nameInputElement.value < 3) {
+          throw new Error("Некорректный запрос error 400");
+        } else {
+          return response.json();
+        }
+      }).then((responseData) => {
+        return responseData;
+      }).then((response) => {
+        return getComments();
+      }).catch((error) => {
+        if (error.message === "Некорректный запрос error 400") {
+          alert("Длина имени не может быть меньше 3 символов");
+        }
 
-    comments.push({
-      userName: nameInputElement.value
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;"),
-      commentText: commentAreaElement.value
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("QUOTE_BEGIN", "<div class='quote'>")
-        .replaceAll("QUOTE_END", "</div>"),
-      time: `${formattedDateTime}`,
-      likes: 0,
-      isLiked: "",
-    });
+        renderComments();
 
-    renderComments();
-
-    nameInputElement.value = '';
-    commentAreaElement.value = '';
-    addButtonElement.disabled = true;
-    addButtonElement.classList.add('error');
+        nameInputElement.value = '';
+        commentAreaElement.value = '';
+        addButtonElement.disabled = true;
+        addButtonElement.classList.add('error');
+      });
   }
 }
 
