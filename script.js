@@ -162,7 +162,7 @@ deleteComments();
 function addComment() {
   const oldCommentsListHtml = commentsList.innerHTML;
   const name = nameInputElement.value.trim();
-  const comment = commentAreaElement.value.trim();
+  const text = commentAreaElement.value.trim();
 
   const sanitizeHtml = (htmlString) => {
     return htmlString
@@ -174,13 +174,13 @@ function addComment() {
     .replaceAll("QUOTE_END", "</div>")
   };
 
-  if (name !== '' && comment !== '') {
+  if (name !== '' && text !== '') {
 
     let fetchPromise = fetch(urlApi, 
       {
         method: "POST",
         body: JSON.stringify({
-          userName: sanitizeHtml(nameInputElement.value),
+          name: sanitizeHtml(nameInputElement.value),
           text: sanitizeHtml(commentAreaElement.value),
         })
       }).then((response) => {
