@@ -192,6 +192,10 @@ function addComment() {
       }).then((responseData) => {
         return responseData;
       }).then((response) => {
+        nameInputElement.value = '';
+        commentAreaElement.value = '';
+        addButtonElement.disabled = true;
+        addButtonElement.classList.add('error');
         return getComments();
       }).catch((error) => {
         if (error.message === "Некорректный запрос error 400") {
@@ -199,11 +203,6 @@ function addComment() {
         }
 
         renderComments();
-
-        nameInputElement.value = '';
-        commentAreaElement.value = '';
-        addButtonElement.disabled = true;
-        addButtonElement.classList.add('error');
       });
   }
 }
