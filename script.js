@@ -21,9 +21,11 @@ let urlApi = "https://wedev-api.sky.pro/api/v1/vadim-zolotov/comments";
 const getComments = () => {
   let fetchPromise = fetch(urlApi, {
     method: "GET"
-  }).then((response) => {
+  })
+  .then((response) => {
     return response.json();
-  }).then((responseData) => {
+  })
+  .then((responseData) => {
     comments = responseData.comments.map((comment) => {
       return {
         userName: comment.author.name,
@@ -35,12 +37,25 @@ const getComments = () => {
       };
     });
 
+    let hidePreload = document.querySelector(".preload").style.display = "none";
+    hideSeeAddComment();
     renderComments();
+    addButtonElement.disabled = false;
   });
 };
 
+const hideSeeAddComment = () => {
+  addButtonElement.addEventListener("click", () => {
+    addButtonElement.disabled = true;
+    commentsList.textContent = "Добавление комментария";
+  });
+  addButtonElement.disabled = false;
+  commentsList.textContent = "";
+}
+
 
 getComments();
+hideSeeAddComment();
 
 let comments = [];
 
@@ -176,34 +191,45 @@ function addComment() {
 
   if (name !== '' && text !== '') {
 
-    let fetchPromise = fetch(urlApi, 
+    let fetchPromise = () => {
+      fetch(urlApi, 
       {
         method: "POST",
         body: JSON.stringify({
           name: sanitizeHtml(nameInputElement.value),
           text: sanitizeHtml(commentAreaElement.value),
         })
-      }).then((response) => {
-        if (nameInputElement.value < 3) {
+      })
+      .then((response) => {
+        if (response.status === 400) {
           throw new Error("Некорректный запрос error 400");
         } else {
           return response.json();
         }
-      }).then((responseData) => {
+      })
+      .then((responseData) => {
         return responseData;
-      }).then((response) => {
-        nameInputElement.value = '';
-        commentAreaElement.value = '';
-        addButtonElement.disabled = true;
-        addButtonElement.classList.add('error');
+      })
+      .then((response) => {
+        return response.json();
+      })
+      .then((responseData) => {
         return getComments();
-      }).catch((error) => {
+        nameInputElement.value = "";
+        commentAreaElement.value = "";
+      })
+      .catch((error) => {
         if (error.message === "Некорректный запрос error 400") {
           alert("Длина имени не может быть меньше 3 символов");
         }
-
+        addButtonElement.disabled = false;
         renderComments();
       });
+    }
+
+      nameInputElement.value = '';
+      commentAreaElement.value = '';
+      addButtonElement.classList.add('error');
   }
 }
 
