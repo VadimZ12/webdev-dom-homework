@@ -191,8 +191,7 @@ function addComment() {
 
   if (name !== '' && text !== '') {
 
-    let fetchPromise = () => {
-      fetch(urlApi, 
+    let fetchPromise = fetch(urlApi, 
       {
         method: "POST",
         body: JSON.stringify({
@@ -231,5 +230,4 @@ function addComment() {
       commentAreaElement.value = '';
       addButtonElement.classList.add('error');
   }
-}
 
