@@ -213,7 +213,8 @@ function addComment() {
         return response.json();
       })
       .then((responseData) => {
-        return getComments();
+        return getComments;
+        renderComments();
         nameInputElement.value = "";
         commentAreaElement.value = "";
       })
@@ -222,12 +223,13 @@ function addComment() {
           alert("Длина имени не может быть меньше 3 символов");
         }
         addButtonElement.disabled = false;
-        renderComments();
       });
-    }
-
-      nameInputElement.value = '';
-      commentAreaElement.value = '';
-      addButtonElement.classList.add('error');
   }
+  
+  getComments();
+  // renderComments();
+  nameInputElement.value = '';
+  commentAreaElement.value = '';
+  addButtonElement.classList.add('error');
+}
 
