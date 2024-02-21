@@ -213,7 +213,7 @@ function addComment() {
         return response.json();
       })
       .then((responseData) => {
-        return getComments;
+        getComments();
         renderComments();
         nameInputElement.value = "";
         commentAreaElement.value = "";
